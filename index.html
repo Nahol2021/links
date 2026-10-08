@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Links">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Meine Seiten</title>
+<style>
+  :root { color-scheme: light dark; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 24px 16px 48px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: #f4f3f0; color: #1a1a1a;
+    display: flex; flex-direction: column; align-items: center;
+  }
+  h1 { font-size: 1.3rem; margin: 0 0 4px; text-align: center; }
+  p.sub { color: #8a8a8a; text-align: center; margin: 0 0 20px; font-size: 0.9rem; }
+  main { width: 100%; max-width: 520px; }
+  #suche {
+    width: 100%; padding: 12px 14px; border-radius: 12px; font-size: 1rem;
+    border: 1px solid #d8d6d0; background: #fff; color: inherit; margin-bottom: 16px;
+  }
+  .card {
+    background: #fff; border: 1px solid #e4e2dd; border-radius: 16px;
+    padding: 8px 0; margin-bottom: 16px;
+  }
+  .card h2 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: .04em;
+    color: #8a8a8a; margin: 8px 18px 4px; }
+  a.link {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 12px 18px; color: inherit; text-decoration: none;
+    border-top: 1px solid #efeee9;
+  }
+  .card h2 + a.link { border-top: none; }
+  a.link:hover, a.link:active { background: #f7f6f3; }
+  .name { font-weight: 600; }
+  .info { font-size: 0.85rem; color: #8a8a8a; margin-top: 2px; }
+  .tag { font-size: 0.72rem; color: #8a8a8a; border: 1px solid #e0ded8;
+    border-radius: 6px; padding: 2px 6px; white-space: nowrap; }
+  .leer { text-align: center; color: #8a8a8a; display: none; }
+  @media (prefers-color-scheme: dark) {
+    body { background: #17181a; color: #f0f0f0; }
+    .card, #suche { background: #232527; border-color: #34363a; }
+    a.link { border-top-color: #2e3033; }
+    a.link:hover, a.link:active { background: #2a2c2f; }
+    .tag { border-color: #3a3c40; }
+  }
+</style>
+</head>
+<body>
+<h1>Meine Seiten</h1>
+<p class="sub">Alle selbstgemachten Websites an einem Ort</p>
+<main>
+  <input id="suche" type="search" placeholder="Suchen …" autocomplete="off">
+  <div id="liste"></div>
+  <p class="leer" id="leer">Nichts gefunden.</p>
+</main>
+
+<script>
+// ===== Hier neue Links eintragen =====
+// claude: true  → Claude-Seite, nur mit Anmeldung bei claude.ai sichtbar
+const LINKS = [
+  { gruppe: "Schule", name: "Englisch 9 – California Dreaming", info: "Übungsseite zur Klassenarbeit", url: "https://nahol2021.github.io/englisch9/" },
+  { gruppe: "Schule", name: "Spanisch 9", info: "Übungsseite zur 1. Arbeit", url: "https://nahol2021.github.io/spanisch9/" },
+  { gruppe: "Schule", name: "Schreibformen", info: "Anleitungen und Übungen", url: "https://nahol2021.github.io/schreibformen/" },
+  { gruppe: "Schule", name: "Grammatik-Sammlung", info: "Regelblätter für alle Sprachen", url: "https://nahol2021.github.io/vokabel-upload/grammatik.html" },
+  { gruppe: "Schule", name: "Vokabel-Upload", info: "Foto hochladen → Navigium", url: "https://nahol2021.github.io/vokabel-upload/" },
+  { gruppe: "Schule", name: "Konjunktiv-Werkstatt", url: "https://claude.ai/artifact/D3teNRQutsyv8tJDyotodn", claude: true },
+
+  { gruppe: "Planspiel Börse", name: "Depotbuch", info: "Depot, Kurse, Bericht", url: "https://nahol2021.github.io/depotbuch/" },
+  { gruppe: "Planspiel Börse", name: "Depotbuch – Nachrichten", url: "https://nahol2021.github.io/depotbuch/nachrichten.html" },
+
+  { gruppe: "Mode & Nähen", name: "Entwurfsatelier", info: "Kleidung entwerfen", url: "https://nahol2021.github.io/entwurfsatelier/" },
+  { gruppe: "Mode & Nähen", name: "Entwurfs-Prüfstand", url: "https://claude.ai/artifact/TsFVEsjGP5Jsd77i8xsvEw", claude: true },
+  { gruppe: "Mode & Nähen", name: "Nähwiki", info: "Seamly2D-Übersicht", url: "https://claude.ai/artifact/7Je36mGHLSswmMdfAvQTsT", claude: true },
+  { gruppe: "Mode & Nähen", name: "Shirt nähen mit Seamly2D", url: "https://claude.ai/artifact/XKCXRRgQXgvMEG47kaVLBe", claude: true },
+  { gruppe: "Mode & Nähen", name: "T-Shirt-Grundschnitt", url: "https://claude.ai/artifact/Uw2YZmaUZFraKvGfxmnWZM", claude: true },
+  { gruppe: "Mode & Nähen", name: "Hosen-Grundschnitt", url: "https://claude.ai/artifact/8GwDSvnfJ1cqM8yWzomDWo", claude: true },
+  { gruppe: "Mode & Nähen", name: "Leinenhemd", url: "https://claude.ai/artifact/6BsHY6HP4iSGxfmdkvbkYY", claude: true },
+  { gruppe: "Mode & Nähen", name: "Hemdkragen", url: "https://claude.ai/artifact/R5RVm9uHeZKva3h7LBH45Y", claude: true },
+  { gruppe: "Mode & Nähen", name: "Knopfleiste", url: "https://claude.ai/artifact/XMp5LpcCvf43cpMRAb1ifm", claude: true },
+  { gruppe: "Mode & Nähen", name: "Ärmel einsetzen", url: "https://claude.ai/artifact/TevascaWc4xdcG8GxAcuRB", claude: true },
+  { gruppe: "Mode & Nähen", name: "Cap-Grundschnitt", url: "https://claude.ai/artifact/6FV2AdBS6HXM81kBaNNwBJ", claude: true },
+
+  { gruppe: "Kunst", name: "Heli Schritt für Schritt", info: "Zwei-Punkt-Perspektive", url: "https://claude.ai/artifact/VHp2QGnjuyCiARjuccWaBj", claude: true },
+
+  { gruppe: "Sonstiges", name: "Wochendosis & Vokabelscanner", url: "https://claude.ai/artifact/DUG7Y7N6vn8BFdqRTMmCDK", claude: true },
+];
+// =====================================
+
+const liste = document.getElementById("liste");
+const leer = document.getElementById("leer");
+const suche = document.getElementById("suche");
+
+function zeigen(filter) {
+  const f = filter.trim().toLowerCase();
+  const treffer = LINKS.filter(l => !f || (l.name + " " + (l.info || "") + " " + l.gruppe).toLowerCase().includes(f));
+  const gruppen = [...new Set(treffer.map(l => l.gruppe))];
+  liste.innerHTML = "";
+  for (const g of gruppen) {
+    const card = document.createElement("div");
+    card.className = "card";
+    const h = document.createElement("h2");
+    h.textContent = g;
+    card.append(h);
+    for (const l of treffer.filter(l => l.gruppe === g)) {
+      const a = document.createElement("a");
+      a.className = "link";
+      a.href = l.url;
+      a.target = "_blank";
+      a.rel = "noopener";
+      const text = document.createElement("div");
+      const name = document.createElement("div");
+      name.className = "name";
+      name.textContent = l.name;
+      text.append(name);
+      if (l.info) {
+        const info = document.createElement("div");
+        info.className = "info";
+        info.textContent = l.info;
+        text.append(info);
+      }
+      a.append(text);
+      const tag = document.createElement("span");
+      tag.className = "tag";
+      tag.textContent = l.claude ? "Claude" : "Web";
+      a.append(tag);
+      card.append(a);
+    }
+    liste.append(card);
+  }
+  leer.style.display = treffer.length ? "none" : "block";
+}
+
+suche.addEventListener("input", () => zeigen(suche.value));
+zeigen("");
+</script>
+</body>
+</html>
