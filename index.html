@@ -87,6 +87,9 @@ const LINKS = [
 
   { gruppe: "Kunst", name: "Heli Schritt für Schritt", info: "Zwei-Punkt-Perspektive", url: "https://claude.ai/artifact/VHp2QGnjuyCiARjuccWaBj", claude: true },
 
+  { gruppe: "PC", name: "Maus-Spickzettel", info: "Belegung der Performance MX + Live-Test", url: "file:///home/johan/Dokumente/Maus-Spickzettel.html", lokal: true },
+  { gruppe: "PC", name: "Maus-Training", info: "Alle Kombis üben, ohne Vorsagen", url: "file:///home/johan/Dokumente/Maus-Training.html", lokal: true },
+
   { gruppe: "Sonstiges", name: "Wochendosis & Vokabelscanner", url: "https://claude.ai/artifact/DUG7Y7N6vn8BFdqRTMmCDK", claude: true },
 ];
 // =====================================
@@ -126,8 +129,18 @@ function zeigen(filter) {
       a.append(text);
       const tag = document.createElement("span");
       tag.className = "tag";
-      tag.textContent = l.claude ? "Claude" : "Web";
+      tag.textContent = l.lokal ? "nur PC" : (l.claude ? "Claude" : "Web");
       a.append(tag);
+      if (l.lokal) {
+        // Browser öffnen lokale Dateien nicht von einer Internetseite aus: Adresse kopieren
+        a.addEventListener("click", e => {
+          e.preventDefault();
+          navigator.clipboard.writeText(l.url).then(
+            () => { tag.textContent = "kopiert – in Adresszeile einfügen"; },
+            () => { tag.textContent = l.url; });
+          setTimeout(() => { tag.textContent = "nur PC"; }, 4000);
+        });
+      }
       card.append(a);
     }
     liste.append(card);
